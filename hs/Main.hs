@@ -24,7 +24,14 @@ data NeuralNetwork = NeuralNetwork
   } deriving (Show, Read)
 
 data Prediction = Prediction
-  {
-  }
+  { predChar        :: Char
+  , predIndex       :: Int
+  , predConfidence  :: Double
+  } deriving (Show)
+
+data TrainingSample = TrainingSample
+  { pixels :: !Vector
+  , label  :: !Int
+  } deriving (Show)
 
 
