@@ -7,6 +7,7 @@ Only needs to run once - the trained weights are committed to the repo.
 
 import gzip
 import struct
+import json
 import urllib.request
 from pathlib import Path
 
@@ -29,6 +30,11 @@ def download_emnist_if_not_exists():
         print("Downloading EMNIST dataset (this may take a while)...")
         urllib.request.urlretrieve(EMNIST_URL, zip_path)
         print("Download complete!")
+
+    marker_file = ext_path / "emnist-letters-train-images-idx3-ubyte.gz"
+    if marker_file.exists():
+        print("Dataset already extracted.")
+        return
 
     print("Extracting...")
 
@@ -127,7 +133,6 @@ def main():
 
     download_emnist_if_not_exists()
 
-    """
     print("Preparing letters (A-Z)...")
     letters = prep_letters()
 
@@ -143,7 +148,6 @@ def main():
     print(f"Saving to {output_file}...")
     with open(output_file, 'w') as f:
         json.dump(sampled, f)
-    """
 
     print("Done!")
 
