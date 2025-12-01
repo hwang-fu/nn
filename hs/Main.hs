@@ -65,7 +65,7 @@ softmax xs =
     sumExp = sum expXs
 
 -- Dot product of two vectors
--- Example: dot [1,2,3] [4,5,6] = 1*4 + 2*5 + 3*6 = 32
+-- Example: [1,2,3] `dot` [4,5,6] = 1*4 + 2*5 + 3*6 = 32
 dot :: Vector -> Vector -> Double
 dot xs ys = foldl' (+) 0 $ zipWith (*) xs ys
 
@@ -74,5 +74,9 @@ dot xs ys = foldl' (+) 0 $ zipWith (*) xs ys
 matVecMul :: Matrix -> Vector -> Vector
 matVecMul xss ys = map (\xs -> xs `dot` ys) xss
 
+-- Element-wise vector addition
+-- Example: [1,2,3] `vecAdd` [4,5,6] = [5,7,9]
+vecAdd :: Vector -> Vector -> Vector
+vecAdd = zipWith (+)
 
 
