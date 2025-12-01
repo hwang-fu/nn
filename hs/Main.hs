@@ -85,4 +85,13 @@ vecAdd = zipWith (+)
 forwardLayer :: Matrix -> Vector -> Vector -> Vector
 forwardLayer weights input bias = (weights `matVecMul` input) `vecAdd` bias
 
+-- Complete forward pass through the nn
+-- Input (784) -> Hidden (128, ReLU) -> Output (36, softmax)
+-- Returns the probability distribution over 36 classes
+forward :: NeuralNetwork -> Vector -> Vector
+forward nn input =
+    output
+  where
+    hidden = map relu $ forwardLayer (weightsIH nn) input  (biasH nn)
+    output = softmax  $ forwardLayer (weightsHO nn) hidden (biasO nn)
 
