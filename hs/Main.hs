@@ -13,13 +13,14 @@
 
 module Main where
 
-import Data.List (foldl', maximumBy)
+import Data.List (foldl', maximumBy, sortBy)
 import Data.Ord (comparing)
-import Data.Char (chr)
-import System.IO (hPutStrLn, stderr)
-import Control.Monad (foldM, when)
+import Data.Char (chr, isDigit)
+import System.IO (hPutStrLn, stderr, stdout, hFlush)
+import Control.Monad (foldM, when, forever)
 import Data.Maybe (mapMaybe)
 import Text.Read (readMaybe)
+import System.Environment (getArgs)
 
 -- ============================================================
 -- Data Types
@@ -100,6 +101,14 @@ forward nn input =
   where
     hidden = map relu $ forwardLayer (weightsIH nn) input  (biasH nn)
     output = softmax  $ forwardLayer (weightsHO nn) hidden (biasO nn)
+
+-- Get top N predictions sorted by confidence
+predictTopN :: NeuralNetwork -> Vector -> Int -> [Prediction]
+predictTopN nn input n = take n sortedPreds
+  where
+    probabilities = forward nn input
+    sorted = sortBy (flip $ comparing snd) (zip [0..] probabilities)
+    sortedPreds = map (\(i, p) -> Prediction (indexToChar i) i p) sorted
 
 -- Convert class index (0-35) to character
 -- 0-25  → 'A'-'Z'
@@ -296,7 +305,7 @@ extractLabel obj = do
     Nothing -> Nothing
     Just i -> do
       let rest = drop (i + 8) obj
-      let numStr = takeWhile (\c -> c `elem` "0123456789") (dropWhile (== ' ') rest)
+      let numStr = takeWhile isDigit (dropWhile (== ' ') rest)
       readMaybe numStr
 
 -- Find substring in string
@@ -350,5 +359,76 @@ formatOutput main topPredications = concat
     formatPred p     = ",{\"char\":\"" ++ [predChar p] ++
                        "\",\"confidence\":" ++ show (predConfidence p) ++ "}"
 
+-- ============================================================
+-- Main Program
+-- ============================================================
 
+main :: IO ()
+main = do
+  args <- getArgs
 
+  case args of
+    ["--train-from-data", dataFile, outputFile] -> do
+      -- Train from EMNIST data
+      hPutStrLn stderr $ "Loading training data from " ++ dataFile
+      samples <- loadTrainingData dataFile
+      hPutStrLn stderr $ "Loaded " ++ show (length samples) ++ " samples"
+
+      hPutStrLn stderr "Initializing the neural network..."
+      let nn = initNeuralNetwork 42
+
+      hPutStrLn stderr "Training..."
+      trained <- trainWithProgress nn samples 50 0.01
+
+      hPutStrLn stderr $ "Saving weights to " ++ outputFile
+      saveWeights outputFile trained
+
+      let finalAcc = calcAccuracy trained (take 2000 samples)
+      hPutStrLn stderr $ "Final accuracy: " ++ show (round (finalAcc * 100)) ++ "%"
+      hPutStrLn stderr "Done!"
+
+    ["--predict", weightsFile] -> do
+      hPutStrLn stderr $ "Loading weights from " ++ weightsFile
+      maybeNN <- loadWeights weightsFile
+      case maybeNN of
+        Nothing -> hPutStrLn stderr "Error: Could not load weights file"
+        Just nn -> do
+          hPutStrLn stderr "Ready for predictions. Send pixel array via stdin."
+          predictionLoop nn
+
+    ["--test", weightsFile, dataFile] -> do
+      -- Test accuracy on data
+      hPutStrLn stderr "Loading..."
+      maybeNN <- loadWeights weightsFile
+      samples <- loadTrainingData dataFile
+      case maybeNN of
+        Nothing -> hPutStrLn stderr "Error: Could not load weights"
+        Just nn -> do
+          let acc = calcAccuracy nn samples
+          hPutStrLn stderr $ "Accuracy: " ++ show (round (acc * 100)) ++ "%"
+
+    _ -> do
+      putStrLn "nn - Handwriting Recognition Neural Network"
+      putStrLn ""
+      putStrLn "Usage:"
+      putStrLn "  nn --train-from-data <data.json> <weights.dat>  # Train from EMNIST"
+      putStrLn "  nn --predict <weights.dat>                      # Run prediction server"
+      putStrLn "  nn --test <weights.dat> <data.json>             # Test accuracy"
+
+predictionLoop :: NeuralNetwork -> IO ()
+predictionLoop nn = forever $ do
+  line <- getLine
+  case readMaybe line :: Maybe Vector of
+    Nothing -> do
+      putStrLn "{\"error\":\"Invalid input format\"}"
+      hFlush stdout
+    Just pixels -> do
+      if length pixels /= 784
+        then do
+          putStrLn $ "{\"error\":\"Expected 784 pixels, got " ++ show (length pixels) ++ "\"}"
+          hFlush stdout
+        else do
+          let mainPred = predict nn pixels
+          let topPreds = predictTopN nn pixels 3
+          putStrLn $ formatOutput mainPred topPreds
+          hFlush stdout
