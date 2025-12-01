@@ -17,21 +17,33 @@ type Vector = [] Double
 type Matrix = [] [] Double
 
 data NeuralNetwork = NeuralNetwork
-  { weightsIH :: !Matrix    -- Input to Hidden (784 x 128)
-  , biasH     :: !Vector    -- Hidden bias (129)
-  , weightsHO :: !Matrix    -- Hidden to Output (128 * 36)
-  , biasO     :: !Vector    -- Output bias (36)
+  { weightsIH :: !Matrix    -- 784×128 matrix (input -> hidden layer)
+  , biasH     :: !Vector    -- 128 bias values for hidden layer
+  , weightsHO :: !Matrix    -- 128×36 matrix (hidden -> output layer)
+  , biasO     :: !Vector    -- 36 bias values for output layer
   } deriving (Show, Read)
 
 data Prediction = Prediction
-  { predChar        :: Char
-  , predIndex       :: Int
-  , predConfidence  :: Double
+  { predChar        :: Char   -- The predicted character ('A', '5', etc.)
+  , predIndex       :: Int    -- Internal class index (0 ~ 35)
+  , predConfidence  :: Double -- How confident (0.0 ~ 1.0)
   } deriving (Show)
 
 data TrainingSample = TrainingSample
-  { pixels :: !Vector
-  , label  :: !Int
+  { pixels :: !Vector   -- 784 pixel values (28x28 flattened, 0.0 ~ 1.0)
+  , label  :: !Int      -- correct answer (0 ~ 35)
   } deriving (Show)
+
+
+
+-- ReLU (Rectified Linear Unit) activation function
+-- Returns x if positive, 0 otherwise
+relu :: Double -> Double
+relu x = max 0 x
+
+-- Derivative of ReLU for backpropagation
+-- Returns 1 if x > 0, else 0
+relu' :: Double -> Double
+relu' x = if x > 0 then 1 else 0
 
 
