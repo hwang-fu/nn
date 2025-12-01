@@ -13,6 +13,8 @@
 
 module Main where
 
+import Data.List (foldl')
+
 -- ============================================================
 -- Data Types
 -- ============================================================
@@ -61,5 +63,10 @@ softmax xs =
     maxX   = maximum xs
     expXs  = map (\x -> exp(x - maxX)) xs
     sumExp = sum expXs
+
+-- Dot product of two vectors
+-- Example: dot [1,2,3] [4,5,6] = 1*4 + 2*5 + 3*6 = 32
+dot :: Vector -> Vector -> Double
+dot xs ys = foldl' (+) 0 $ zipWith (*) xs ys
 
 
