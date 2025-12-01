@@ -68,7 +68,19 @@ def read_idx_images(filepath):
         return images
 
 def prep_letters():
-     """Prepare EMNIST Letters dataset (A-Z)."""
+    """Prepare EMNIST Letters dataset (A-Z)."""
+    base = DATA_DIR / "EMNIST" / "emnist-letters"
+
+    images = read_idx_images(f"{base}-train-images-idx3-ubyte.gz")
+    labels = read_idx_labels(f"{base}-train-labels-idx1-ubyte.gz")
+
+    data = []
+    for img, label in zip(images, labels):
+        data.append({
+            "pixels": img,
+            "label":  label - 1 # convert 1 ~ 26 to 0 ~ 25
+        })
+    return data
 
 def prep_digits():
     """Prepare EMNIST Digits dataset (0-9)."""
@@ -78,12 +90,31 @@ def prep_digits():
     labels = read_idx_labels(f"{base}-train-labels-idx1-ubyte.gz")
 
     data = []
-    for img, label = in zip(images, labels):
-        data.append()
+    for img, label in zip(images, labels):
+        data.append({
+            "pixels": img,
+            "label":  label + 26 # convert 0 ~ 9 to 26 ~ 35
+        })
+    return data
 
+def sample_data(data, samples_per_class=500):
+    """Take balanced sample from each class"""
+    from collections import defaultdict
+
+    by_class = defaultdict(list)
+    for item in data:
+        by_class[item["label"]].append(item)
+
+    sampled = []
+    for _label, items in by_class.items():
+        sampled.extend(items[:samples_per_class])
+    return sampled;
 
 def main():
-    pass
+    output_file = "training_data.json"
+    if (output_file.exist()):
+        print(f"")
+        return
 
 if __name__ == "__main__":
     main()
