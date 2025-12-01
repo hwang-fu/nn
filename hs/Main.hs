@@ -215,7 +215,7 @@ trainSingle nn input targetIdx learningRate = NeuralNetwork
     -- update weights
     newWeightsHO = zipWith (zipWith (\w g -> w - learningRate * g))
                     (weightsHO nn)
-                    (outerProduct hidden outputError)
+                    (outerProduct outputError hidden)
 
     newBiasO     = zipWith (\b e -> b - learningRate * e)
                      (biasO nn)
@@ -223,7 +223,7 @@ trainSingle nn input targetIdx learningRate = NeuralNetwork
 
     newWeightsIH = zipWith (zipWith (\w g -> w - learningRate * g))
                      (weightsIH nn)
-                     (outerProduct input hiddenError)
+                     (outerProduct hiddenError input)
 
     newBiasH     = zipWith (\b e -> b - learningRate * e)
                      (biasH nn)
