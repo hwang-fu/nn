@@ -32,7 +32,7 @@ type Matrix = [[Double]]
 data NeuralNetwork = NeuralNetwork
   { weightsIH :: !Matrix    -- 784×128 matrix (input -> hidden layer)
   , biasH     :: !Vector    -- 128 bias values for hidden layer
-  , weightsHO :: !Matrix    -- 128×36 matrix (hidden -> output layer)
+  , weightsHO :: !Matrix    -- 36x128 matrix (hidden -> output layer)
   , biasO     :: !Vector    -- 36 bias values for output layer
   } deriving (Show, Read)
 
