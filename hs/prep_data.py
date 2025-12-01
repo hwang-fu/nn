@@ -13,13 +13,14 @@ from pathlib import Path
 
 EMNIST_URL = "https://biometrics.nist.gov/cs_links/EMNIST/gzip.zip"
 DATA_DIR = Path(__file__).parent.parent / "dataset"
+EMNIST_DIR = DATA_DIR / "EMNIST"
 
 def download_emnist_if_not_exists():
     """Download EMNIST dataset if not present."""
     import zipfile
 
     zip_path = DATA_DIR / "EMNIST.zip"
-    ext_path = DATA_DIR / "EMNIST"
+    ext_path = EMNIST_DIR
 
     if not DATA_DIR.exists():
         DATA_DIR.mkdir(parents=True)
@@ -77,7 +78,7 @@ def read_idx_images(filepath):
 
 def prep_letters():
     """Prepare EMNIST Letters dataset (A-Z)."""
-    base = DATA_DIR / "EMNIST" / "emnist-letters"
+    base = EMNIST_DIR / "emnist-letters"
 
     images = read_idx_images(f"{base}-train-images-idx3-ubyte.gz")
     labels = read_idx_labels(f"{base}-train-labels-idx1-ubyte.gz")
@@ -92,7 +93,7 @@ def prep_letters():
 
 def prep_digits():
     """Prepare EMNIST Digits dataset (0-9)."""
-    base = DATA_DIR / "EMNIST" / "emnist-digits"
+    base = EMNIST_DIR / "emnist-digits"
 
     images = read_idx_images(f"{base}-train-images-idx3-ubyte.gz")
     labels = read_idx_labels(f"{base}-train-labels-idx1-ubyte.gz")
