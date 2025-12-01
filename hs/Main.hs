@@ -332,6 +332,23 @@ loadTrainingData path = do
   let samples = parseTrainingData content
   return samples
 
+-- ============================================================
+-- Output Formatting
+-- ============================================================
+
+formatOutput :: Prediction -> [Prediction] -> String
+formatOutput main topPredications = concat
+    [ "{"
+    , "\"character\":\"" ++ [predChar main] ++ "\","
+    , "\"confidence\":" ++ show (predConfidence main) ++ ","
+    , "\"index\":" ++ show (predIndex main) ++ ","
+    , "\"topN\":[" ++ formatTopN topPredications ++ "]"
+    , "}"
+    ]
+  where
+    formatTopN preds = drop 1 $ concatMap formatPred preds
+    formatPred p     = ",{\"char\":\"" ++ [predChar p] ++
+                       "\",\"confidence\":" ++ show (predConfidence p) ++ "}"
 
 
 
