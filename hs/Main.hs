@@ -18,6 +18,8 @@ import Data.Ord (comparing)
 import Data.Char (chr)
 import System.IO (hPutStrLn, stderr)
 import Control.Monad (foldM, when)
+import Data.Maybe (mapMaybe)
+import Text.Read (readMaybe)
 
 -- ============================================================
 -- Data Types
@@ -248,8 +250,69 @@ trainWithProgress nn samples epochs learningRate = do
                            ", Accuracy: " ++ show (round (accuracy * 100)) ++ "%"
       return trained
 
+-- ============================================================
+-- Data Loading (Simple JSON parsing)
+-- ============================================================
 
+-- Extract JSON objects from array (simple parser)
+extractObjects :: String -> [String]
+extractObjects s =
+    go 0 "" (dropWhile (/= '{') s)
+  where
+    go _ acc [] = if null acc then [] else [reverse acc]
+    go depth acc (c:cs)
+      | c == '{' = go (depth + 1) (c:acc) cs
+      | c == '}' = if depth == 1
+                   then reverse (c:acc) : go 0 "" (dropWhile (\x -> x /= '{' && x /= ']') cs)
+                   else go (depth - 1) (c:acc) cs
+      | depth > 0 = go depth (c:acc) cs
+      | otherwise = go depth acc cs
 
+-- Parse a single training sample from JSON object
+parseSample :: String -> Maybe TrainingSample
+parseSample obj = do
+  pixels <- extractPixels obj
+  label  <- extractLabel obj
+  if length pixels == 784
+    then Just $ TrainingSample pixels label
+    else Nothing
+
+-- Extract pixels array from JSON object
+extractPixels :: String -> Maybe Vector
+extractPixels obj = do
+  let start = findSubstring "\"pixels\":" obj
+  case start of
+    Nothing -> Nothing
+    Just i -> do
+      let rest = drop (i + 9) obj
+      let arrayStr = takeWhile (/= ']') (dropWhile (/= '[') rest) ++ "]"
+      readMaybe $ filter (/= ' ') arrayStr
+
+-- Extract label from JSON object
+extractLabel :: String -> Maybe Int
+extractLabel obj = do
+  let start = findSubstring "\"label\":" obj
+  case start of
+    Nothing -> Nothing
+    Just i -> do
+      let rest = drop (i + 8) obj
+      let numStr = takeWhile (\c -> c `elem` "0123456789") (dropWhile (== ' ') rest)
+      readMaybe numStr
+
+-- Find substring in string
+findSubstring :: String -> String -> Maybe Int
+findSubstring needle haystack = go 0 haystack
+  where
+    len = length needle
+    go _ [] = Nothing
+    go i s@(_:rest)
+      | take len s == needle = Just i
+      | otherwise = go (i + 1) rest
+
+-- Parse training data from simple JSON format
+-- Format: [{"pixels": [...], "label": N}, ...]
+parseTrainingData :: String -> [TrainingSample]
+parseTrainingData content = mapMaybe parseSample (extractObjects content)
 
 
 
