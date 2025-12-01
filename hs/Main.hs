@@ -79,4 +79,10 @@ matVecMul xss ys = map (\xs -> xs `dot` ys) xss
 vecAdd :: Vector -> Vector -> Vector
 vecAdd = zipWith (+)
 
+-- Single layer forward pass (linear transformation only)
+-- Computes: output = weights x input + bias
+-- Activation function applied separately
+forwardLayer :: Matrix -> Vector -> Vector -> Vector
+forwardLayer weights input bias = (weights `matVecMul` input) `vecAdd` bias
+
 
