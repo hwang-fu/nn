@@ -13,14 +13,10 @@ from pathlib import Path
 
 
 EMNIST_URL = "https://biometrics.nist.gov/cs_links/EMNIST/gzip.zip"
-DATA_DIR = Path(__file__).parent / "dataset" / "EMNIST"
+DATA_DIR = Path(__file__).parent / "dataset"
 
-def download_emnist_if_not_exist():
+def download_emnist_if_not_exists():
     """Download EMNIST dataset if not present."""
-
-    if DATA_DIR.exists():
-        return
-
     import zipfile
 
     zip_path = DATA_DIR / "EMNIST.zip"
@@ -110,13 +106,14 @@ def sample_data(data, samples_per_class=500):
     return sampled;
 
 def main():
-    output_file = "training_data.json"
-    if (output_file.exist()):
+    output_file = DATA_DIR / "training_data.json"
+    if output_file.exists():
         print(f"Training data already exists: {output_file}")
         return
 
-    download_emnist_if_not_exist()
+    download_emnist_if_not_exists()
 
+    """
     print("Preparing letters (A-Z)...")
     letters = prep_letters()
 
@@ -132,6 +129,7 @@ def main():
     print(f"Saving to {output_file}...")
     with open(output_file, 'w') as f:
         json.dump(sampled, f)
+    """
 
     print("Done!")
 
