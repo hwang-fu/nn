@@ -69,4 +69,10 @@ softmax xs =
 dot :: Vector -> Vector -> Double
 dot xs ys = foldl' (+) 0 $ zipWith (*) xs ys
 
+-- Matrix-vector multiplication
+-- Multiplies each row of the matrix by the vector
+matVecMul :: Matrix -> Vector -> Vector
+matVecMul xss ys = map (\xs -> xs `dot` ys) xss
+
+
 
