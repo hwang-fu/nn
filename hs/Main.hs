@@ -21,8 +21,8 @@ import Data.Char (chr)
 -- Data Types
 -- ============================================================
 
-type Vector = [] Double
-type Matrix = [] [] Double
+type Vector = [Double]
+type Matrix = [[Double]]
 
 data NeuralNetwork = NeuralNetwork
   { weightsIH :: !Matrix    -- 784×128 matrix (input -> hidden layer)
@@ -137,17 +137,28 @@ randomStream seed =
     maxInt = 2^31 :: Int
     normalize x = (fromIntegral x / fromIntegral maxInt) * 2 - 1
 
+-- Split a list into chunks of size n
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
+-- Initialize weight matrix using Xavier/Glorot initialization
+-- Scale: sqrt(2 / (fan_in + fan_out))
+initWeights :: Int -> Int -> Int -> Matrix
+initWeights seed inputSz outputSz =
+    take outputSz $ chunksOf inputSz scaledRandoms
+  where
+    scale = sqrt (2.0 / fromIntegral (inputSz + outputSz))
+    scaledRandoms = map (\r -> r * scale) (randomStream seed)
 
-
-
-
-
-
-
-
-
-
+-- Initialize the neural network with random weights and zero biases
+initNeuralNetwork :: Int -> NeuralNetwork
+initNeuralNetwork seed = NeuralNetwork
+  { weightsIH = initWeights seed 784 128
+  , biasH     = replicate 128 0.0
+  , weightsHO = initWeights (seed + 1000) 128 36
+  , biasO     = replicate 36 0.0
+  }
 
 
 
