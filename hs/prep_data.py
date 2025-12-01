@@ -19,6 +19,7 @@ def download_emnist_if_not_exists():
     import zipfile
 
     zip_path = DATA_DIR / "EMNIST.zip"
+    ext_path = DATA_DIR / "EMNIST"
 
     if not DATA_DIR.exists():
         DATA_DIR.mkdir(parents=True)
@@ -29,8 +30,21 @@ def download_emnist_if_not_exists():
         print("Download complete!")
 
     print("Extracting...")
+
+    if not ext_path.exists():
+        ext_path.mkdir(parents=True)
+
     with zipfile.ZipFile(zip_path, 'r') as zf:
-        zf.extractall(DATA_DIR / "EMNIST")
+        for member in zf.namelist():
+            # Skip the root 'gzip/' folder and extract directly
+            if member.startswith('gzip/'):
+                # Strip 'gzip/' prefix
+                filename = member[len('gzip/'):]
+                if filename:  # Skip if it's just the folder itself
+                    # Extract to EMNIST/ instead of EMNIST/gzip/
+                    target_path = ext_path / filename
+                    with zf.open(member) as source, open(target_path, 'wb') as target:
+                        target.write(source.read())
     print("Extraction complete!")
 
 
