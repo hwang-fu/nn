@@ -216,6 +216,11 @@ trainSingle nn input targetIdx learningRate = NeuralNetwork
                      (biasH nn)
                      hiddenError
 
-
+-- Train on a batch of samples
+trainBatch :: NeuralNetwork -> [TrainingSample] -> Double -> NeuralNetwork
+trainBatch nn samples learningRate =
+    foldl' trainOne nn samples
+  where
+    trainOne neuralNetwork sample = trainSingle neuralNetwork (pixels sample) (label sample) learningRate
 
 
