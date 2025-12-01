@@ -7,7 +7,6 @@ Only needs to run once - the trained weights are committed to the repo.
 
 import gzip
 import json
-import os
 import struct
 import urllib.request
 from pathlib import Path
@@ -106,15 +105,35 @@ def sample_data(data, samples_per_class=500):
         by_class[item["label"]].append(item)
 
     sampled = []
-    for _label, items in by_class.items():
+    for _, items in by_class.items():
         sampled.extend(items[:samples_per_class])
     return sampled;
 
 def main():
     output_file = "training_data.json"
     if (output_file.exist()):
-        print(f"")
+        print(f"Training data already exists: {output_file}")
         return
+
+    download_emnist_if_not_exist()
+
+    print("Preparing letters (A-Z)...")
+    letters = prep_letters()
+
+    print("Preparing digits (0-9)...")
+    digits = prep_digits()
+
+    data = letters + digits;
+    print(f"Total samples {len(data)}")
+
+    sampled = sample_data(data)
+    print(f"Sampled: {len(sampled)}")
+
+    print(f"Saving to {output_file}...")
+    with open(output_file, 'w') as f:
+        json.dump(sampled, f)
+
+    print("Done!")
 
 if __name__ == "__main__":
     main()
