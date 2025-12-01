@@ -160,5 +160,62 @@ initNeuralNetwork seed = NeuralNetwork
   , biasO     = replicate 36 0.0
   }
 
+-- ============================================================
+-- Training (Backpropagation with Mini-batch SGD)
+-- ===========================================================
+
+-- Transpose matrix (swap rows and columns)
+transpose :: Matrix -> Matrix
+transpose ([]:_) = []
+transpose m = map head m : transpose (map tail m)
+
+-- Outer product of two vectors: creates matrix where m[i][j] = xs[i] * ys[j]
+-- Used to compute weight gradients
+outerProduct :: Vector -> Vector -> Matrix
+outerProduct xs ys = [[x * y | y <- ys] | x <- xs]
+
+-- Train on a single sample using backpropagation
+trainSingle :: NeuralNetwork -> Vector -> Int -> Double -> NeuralNetwork
+trainSingle nn input targetIdx learningRate = NeuralNetwork
+    { weightsIH = newWeightsIH
+    , biasH     = newBiasH
+    , weightsHO = newWeightsHO
+    , biasO     = newBiasO
+    }
+  where
+    -- forward pass
+    hidden = map relu (forwardLayer (weightsIH nn) input (biasH nn))
+    output = softmax (forwardLayer (weightsHO nn) hidden (biasO nn))
+    -- output error
+    target       = [
+                     if i == targetIdx then 1.0 else 0.0
+                   | i <- [0..35]
+                   ]
+    outputError  = zipWith (-) output target
+
+    -- backpropagate
+    transposedHO = transpose (weightsHO nn)
+    hiddenError  = zipWith (*)
+                     (transposedHO `matVecMul` outputError)
+                     (map relu' (forwardLayer (weightsIH nn) input (biasH nn)))
+
+    -- update weights
+    newWeightsHO = zipWith (zipWith (\w g -> w - learningRate * g))
+                    (weightsHO nn)
+                    (outerProduct hidden outputError)
+
+    newBiasO     = zipWith (\b e -> b - learningRate * e)
+                     (biasO nn)
+                     outputError
+
+    newWeightsIH = zipWith (zipWith (\w g -> w - learningRate * g))
+                     (weightsIH nn)
+                     (outerProduct input hiddenError)
+
+    newBiasH     = zipWith (\b e -> b - learningRate * e)
+                     (biasH nn)
+                     hiddenError
+
+
 
 
