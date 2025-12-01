@@ -111,7 +111,7 @@ def prep_digits():
         for img, label in zip(images, labels)
     ]
 
-def sample_data(data, samples_per_class=500, seed=42):
+def sample_data(data, samples_per_class=250, seed=42):
     """Take balanced sample from each class"""
     from collections import defaultdict
     import random
