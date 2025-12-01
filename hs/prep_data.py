@@ -6,14 +6,13 @@ Only needs to run once - the trained weights are committed to the repo.
 """
 
 import gzip
-import json
 import struct
 import urllib.request
 from pathlib import Path
 
 
 EMNIST_URL = "https://biometrics.nist.gov/cs_links/EMNIST/gzip.zip"
-DATA_DIR = Path(__file__).parent / "dataset"
+DATA_DIR = Path(__file__).parent.parent / "dataset"
 
 def download_emnist_if_not_exists():
     """Download EMNIST dataset if not present."""
@@ -31,7 +30,7 @@ def download_emnist_if_not_exists():
 
     print("Extracting...")
     with zipfile.ZipFile(zip_path, 'r') as zf:
-        zf.extractall(DATA_DIR)
+        zf.extractall(DATA_DIR / "EMNIST")
     print("Extraction complete!")
 
 
@@ -106,7 +105,7 @@ def sample_data(data, samples_per_class=500):
     return sampled;
 
 def main():
-    output_file = DATA_DIR / "training_data.json"
+    output_file = Path(__file__).parent / "training_data.json"
     if output_file.exists():
         print(f"Training data already exists: {output_file}")
         return
