@@ -16,6 +16,8 @@ module Main where
 import Data.List (foldl', maximumBy)
 import Data.Ord (comparing)
 import Data.Char (chr)
+import System.IO (hPutStrLn, stderr)
+import Control.Monad (foldM, when)
 
 -- ============================================================
 -- Data Types
@@ -222,5 +224,32 @@ trainBatch nn samples learningRate =
     foldl' trainOne nn samples
   where
     trainOne neuralNetwork sample = trainSingle neuralNetwork (pixels sample) (label sample) learningRate
+
+-- Calculate accuracy rate on a sample set
+calcAccuracy :: NeuralNetwork -> [TrainingSample] -> Double
+calcAccuracy nn samples =
+    fromIntegral correct / fromIntegral (length samples)
+  where
+    correct = length $ filter isCorrect samples
+    isCorrect sample = let pred = predict nn (pixels sample) in predIndex pred == label sample
+
+-- Train with progress reporting every 10 epochs
+trainWithProgress :: NeuralNetwork -> [TrainingSample] -> Int -> Double -> IO NeuralNetwork
+trainWithProgress nn samples epochs learningRate = do
+    hPutStrLn stderr $ "Training on  " ++ show (length samples) ++ " samples"
+    hPutStrLn stderr $ "Epochs: " ++ show epochs ++ ", Learning Rate: " ++ show learningRate
+    foldM trainEpoch nn [1..epochs]
+  where
+    trainEpoch neuralNetwork epoch = do
+      let trained = trainBatch neuralNetwork samples learningRate
+      when (epoch `mod` 10 == 0) $ do
+        let accuracy = calcAccuracy trained (take 1000 samples)
+        hPutStrLn stderr $ "Epoch " ++ show epoch ++ "/" ++ show epochs ++
+                           ", Accuracy: " ++ show (round (accuracy * 100)) ++ "%"
+      return trained
+
+
+
+
 
 
