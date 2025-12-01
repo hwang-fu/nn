@@ -13,6 +13,10 @@
 
 module Main where
 
+-- ============================================================
+-- Data Types
+-- ============================================================
+
 type Vector = [] Double
 type Matrix = [] [] Double
 
@@ -34,7 +38,9 @@ data TrainingSample = TrainingSample
   , label  :: !Int      -- correct answer (0 ~ 35)
   } deriving (Show)
 
-
+-- ============================================================
+-- Operations
+-- ============================================================
 
 -- ReLU (Rectified Linear Unit) activation function
 -- Returns x if positive, 0 otherwise
@@ -45,5 +51,15 @@ relu x = max 0 x
 -- Returns 1 if x > 0, else 0
 relu' :: Double -> Double
 relu' x = if x > 0 then 1 else 0
+
+-- Softmax activation function for output layer
+-- Converts raw scores to probability distribution
+softmax :: Vector -> Vector
+softmax xs =
+    map (\x -> x / sumExp) expXs
+  where
+    maxX   = maximum xs
+    expXs  = map (\x -> exp(x - maxX)) xs
+    sumExp = sum expXs
 
 
