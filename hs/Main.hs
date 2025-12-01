@@ -13,7 +13,9 @@
 
 module Main where
 
-import Data.List (foldl')
+import Data.List (foldl', maximumBy)
+import Data.Ord (comparing)
+import Data.Char (chr)
 
 -- ============================================================
 -- Data Types
@@ -94,4 +96,45 @@ forward nn input =
   where
     hidden = map relu $ forwardLayer (weightsIH nn) input  (biasH nn)
     output = softmax  $ forwardLayer (weightsHO nn) hidden (biasO nn)
+
+-- Convert class index (0-35) to character
+-- 0-25  → 'A'-'Z'
+-- 26-35 → '0'-'9'
+indexToChar :: Int -> Char
+indexToChar i
+  | i < 26    = chr (65 + i)      -- 'A' ~ 'Z'
+  | otherwise = chr (48 + i - 26) -- '0' ~ '9'
+
+-- Find index and value of maximum element
+maxIndex :: [Double] -> (Int, Double)
+maxIndex xs = maximumBy (comparing snd) (zip [0..] xs)
+
+-- Make prediction on the input image
+-- Returns the most confident class with its probability
+predict :: NeuralNetwork -> Vector -> Prediction
+predict nn input =
+    Prediction c idx confidence
+  where
+    probabilities     = forward nn input
+    (idx, confidence) = maxIndex probabilities
+    c                 = indexToChar idx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
