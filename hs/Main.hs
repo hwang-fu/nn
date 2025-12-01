@@ -314,5 +314,24 @@ findSubstring needle haystack = go 0 haystack
 parseTrainingData :: String -> [TrainingSample]
 parseTrainingData content = mapMaybe parseSample (extractObjects content)
 
+-- ============================================================
+-- File I/O
+-- ============================================================
+
+saveWeights :: FilePath -> NeuralNetwork -> IO ()
+saveWeights path nn = writeFile path (show nn)
+
+loadWeights :: FilePath -> IO (Maybe NeuralNetwork)
+loadWeights path = do
+  content <- readFile path
+  return $ readMaybe content
+
+loadTrainingData :: FilePath -> IO [TrainingSample]
+loadTrainingData path = do
+  content <- readFile path
+  let samples = parseTrainingData content
+  return samples
+
+
 
 
