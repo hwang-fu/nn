@@ -119,10 +119,23 @@ predict nn input =
     (idx, confidence) = maxIndex probabilities
     c                 = indexToChar idx
 
+-- ============================================================
+-- Weight Initialization (Xavier/Glorot)
+-- ============================================================
 
+-- Linear Congruential Generator for pseudo-random numbers
+-- Uses standard LCG parameters: a=1103515245, c=12345, m=2^31
+lcg :: Int -> Int
+lcg seed = (1103515245 * seed + 12345) `mod` (2^31)
 
-
-
+-- Generate infinite stream of random doubles in range [-1, 1]
+-- Used for weight initialization with Xavier/Glorot scaling
+randomStream :: Int -> [Double]
+randomStream seed =
+    map normalize $ iterate lcg seed
+  where
+    maxInt = 2^31 :: Int
+    normalize x = (fromIntegral x / fromIntegral maxInt) * 2 - 1
 
 
 
